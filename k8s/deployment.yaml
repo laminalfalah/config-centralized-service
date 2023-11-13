@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-centralized
+  namespace: core
+data:
+  SPRING_MAIN_CLOUD_PLATFORM: 'kubernetes'
+  SPRING_PROFILES_ACTIVE: 'k8s'
+  SPRING_CLOUD_SERVER_GIT_URI: 'https://github.com/laminalfalah/config-centralized'
+  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: 'http://zipkin.core:9411/api/v2/spans'
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: 'http://eureka.core:8080/eureka'
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: config-centralized
+  namespace: core
+  labels:
+    k8s-app: config-centralized
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: config-centralized
+  serviceName: 'config-centralized'
+  template:
+    metadata:
+      labels:
+        k8s-app: config-centralized
+    spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 10.96.0.10
+        searches:
+          - default.svc.cluster.local
+          - svc.cluster.local
+          - cluster.local
+        options:
+          - name: ndots
+            value: "2"
+          - name: edns0
+      containers:
+        - name: config-centralized
+          image: laminalfalah/config-centralized:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8888
+          env:
+            - name: EUREKA_INSTANCE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: TZ
+              value: Asia/Jakarta
+          envFrom:
+            - configMapRef:
+                name: config-centralized
+          volumeMounts:
+            - name: spring-log
+              mountPath: /home/config/data/logs
+      volumes:
+        - name: spring-log
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-centralized-headless
+  namespace: core
+spec:
+  clusterIP: None
+  selector:
+    k8s-app: config-centralized
+  ports:
+    - name: http
+      port: 8888
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-centralized
+  namespace: core
+spec:
+  type: LoadBalancer
+  selector:
+    k8s-app: config-centralized
+  ports:
+    - name: http
+      port: 8888
+      targetPort: http

@@ -1,0 +1,138 @@
+spring:
+  application:
+    name: '@project.name@'
+  cloud:
+    config:
+      discovery:
+        enabled: true
+      fail-fast: true
+      initialize-on-context-refresh: true
+      server:
+        bootstrap: true
+        git:
+          default-label: master
+          uri: https://github.com/laminalfalah/config-centralized
+          skip-ssl-validation: true
+          timeout: 10
+          search-paths: '{application}'
+  main:
+    allow-bean-definition-overriding: true
+  output:
+    ansi:
+      enabled: always
+
+management:
+  endpoint:
+    configprops:
+      show-values: always
+    env:
+      post:
+        enabled: true
+      show-values: always
+    health:
+      group:
+        liveness:
+          include:
+            - livenessState
+          show-components: always
+        readiness:
+          include:
+            - readinessState
+          show-components: always
+      probes:
+        add-additional-paths: true
+        enabled: true
+      show-components: always
+      show-details: always
+    quartz:
+      show-values: always
+    shutdown:
+      enabled: true
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    git:
+      mode: full
+    java:
+      enabled: true
+    os:
+      enabled: true
+  metrics:
+    enable:
+      all: true
+  server:
+    add-application-context-header: true
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+server:
+  compression:
+    enabled: true
+  error:
+    whitelabel:
+      enabled: false
+  forward-headers-strategy: framework
+  http2:
+    enabled: true
+  port: 8888
+  shutdown: graceful
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    appname: ${spring.application.name}
+    hostname: ${spring.application.name}
+    prefer-ip-address: true
+    health-check-url-path: ${management.endpoints.web.base-path:/actuator}/health
+    status-page-url-path: ${management.endpoints.web.base-path:/actuator}/info
+
+springdoc:
+  api-docs:
+    groups:
+      enabled: true
+    resolve-schema-properties: true
+  cache:
+    disabled: true
+  default-flat-param-object: true
+  disable-i18n: true
+  model-converters:
+    pageable-converter:
+      enabled: true
+    polymorphic-converter:
+      enabled: true
+  nullable-request-parameter-enabled: true
+  pre-loading-enabled: true
+  show-actuator: true
+  sort-converter:
+    enabled: true
+  swagger-ui:
+    deep-linking: true
+    disable-swagger-default-url: true
+    doc-expansion: none
+    enabled: false
+    groups-order: asc
+    operations-sorter: alpha
+    persist-authorization: true
+    query-config-enabled: true
+    show-common-extensions: true
+    show-extensions: true
+    syntax-highlight:
+      activated: true
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    with-credentials: true
+  writer-with-default-pretty-printer: true
+  writer-with-order-by-keys: true
